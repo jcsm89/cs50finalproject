@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html>
+<head lang="en">
+
+  <title> What to watch? </title>
+
+  <!-- define character set -->
+  <meta charset="utf-8">
+
+  <!-- define mobile-friendly settings -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- webapp's style -->
+  <style>
+
+    /* define background image */
+    body {
+        background: url('static/images/popcorn.jpg') no-repeat center center fixed;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+    }
+
+    /* Stylize typeahead.js a la http://twitter.github.io/typeahead.js/css/examples.css */
+    .tt-menu
+    {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-top: 1px;
+        max-height: 150px;
+        overflow-y: auto;
+        width: 300px;
+    }
+    .tt-suggestion.tt-cursor {
+        background-color: #0097cf;
+        color: #fff;
+        cursor: pointer;
+    }
+    .tt-suggestion {
+        margin: 0;
+        padding: 6px 12px;
+    }
+
+    /* Center form */
+    #form_movie
+    {
+        /* Position form "absolutely" where we want it */
+        position: absolute;
+
+        /* Distance from top edge of viewport */
+        top: 28px;
+
+        /* Form's width */
+        width: 100%;
+    }
+    #form_movie .form-group
+    {
+        /* Block-level flex container */
+        display: flex;
+
+        /* Center container's content */
+        justify-content: center;
+    }
+
+    /* Stylize text box */
+    #movie_name
+    {
+        /* Override typeahead.js's transparent background */
+        background-color: #ffffff !important;
+
+        /* Text box's width */
+        width: 300px;
+    }
+
+    #poster {
+        height: 500px;
+        position: absolute;
+        top: 112px;
+        left: 84px;
+        object-fit: contain;
+    }
+
+    #star1 {
+        position: absolute;
+        top: 672px;
+        left: 104px;
+        object-fit: contain;
+    }
+    #star2 {
+        position: absolute;
+        top: 672px;
+        left: 154px;
+        object-fit: contain;
+    }
+    #star3 {
+        position: absolute;
+        top: 672px;
+        left: 204px;
+        object-fit: contain;
+    }
+    #star4 {
+        position: absolute;
+        top: 672px;
+        left: 254px;
+        object-fit: contain;
+    }
+    #star5 {
+        position: absolute;
+        top: 672px;
+        left: 304px;
+        object-fit: contain;
+    }
+
+
+  </style>
+
+  <!-- import bootstrap source from the CDN -->
+  <!-- Latest compiled and minified CSS -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+  <!-- https://github.com/corejavascript/typeahead.js/blob/master/doc/jquery_typeahead.md -->
+  <script src="https://cdn.rawgit.com/corejavascript/typeahead.js/master/dist/typeahead.jquery.js"></script>
+
+  <!-- http://handlebarsjs.com/ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+
+  <!-- website's specific code -->
+  <!-- <script src="/static/scripts.js"></script> -->
+  <script>
+  $(document).ready(function() {
+
+    $("#movie").on("typeahead:selected", function(eventObject, suggestion, name) {
+      // on movie name submission trigger a GET request to search for the movie of interest
+      $.getJSON("/search", {name: suggestion.title}, function(data) {
+
+        // reset star rating
+        $("#star1").attr("src","/static/images/nostar.png");
+        $("#star2").attr("src","/static/images/nostar.png");
+        $("#star3").attr("src","/static/images/nostar.png");
+        $("#star4").attr("src","/static/images/nostar.png");
+        $("#star5").attr("src","/static/images/nostar.png");
+
+        // show queried movie poster
+        $("#poster").attr("src",data.poster);
+
+        // show queried movie imdb rating
+        if (data.rat > 2) {
+          $("#star1").attr("src","/static/images/fullstar.png");
+        };
+        if (data.rat > 4) {
+          $("#star2").attr("src","/static/images/fullstar.png");
+        };
+        if (data.rat > 6) {
+          $("#star3").attr("src","/static/images/fullstar.png");
+        };
+        if (data.rat > 8) {
+          $("#star4").attr("src","/static/images/fullstar.png");
+        };
+        if (data.rat > 9.5) {
+          $("#star5").attr("src","/static/images/fullstar.png");
+        };
+      });
+
+    });
+
+    $('#movie .typeahead').typeahead({
+      hint: true,
+      highlight: true,
+      minLength: 1
+    },
+    {
+      display: 'title',
+      limit: 10,
+      source: function (value, callback, asyncdata) {
+      $.getJSON('/autocomplete', {
+          q: value
+        }, function (data) {
+            asyncdata(data);
+        })
+      }
+    });
+
+  });
+  </script>
+
+</head>
+
+<body>
+
+  <!-- fill viewport -->
+  <div class="container-fluid">
+
+    <form id="form_movie">
+        <div class="form-group" id="movie">
+            <label class="sr-only" for="movie_name">Select a Movie</label>
+            <input class="form-control typeahead" id="movie_name" autocomplete="off" placeholder="Select a movie" type="text"/>
+        </div>
+    </form>
+
+  </div>
+
+  <div class="text-center">
+    <img id="poster" src="/static/images/placeholder_poster.png" class="rounded" alt="...">
+  </div>
+  <div class="text-center">
+    <img id="star1" src="/static/images/nostar.png" class="rounded" alt="...">
+    <img id="star2" src="/static/images/nostar.png" class="rounded" alt="...">
+    <img id="star3" src="/static/images/nostar.png" class="rounded" alt="...">
+    <img id="star4" src="/static/images/nostar.png" class="rounded" alt="...">
+    <img id="star5" src="/static/images/nostar.png" class="rounded" alt="...">
+  </div>
+
+</body>
+</html>
